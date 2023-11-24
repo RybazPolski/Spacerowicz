@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Spacerowicz</string>
+    <string name="btnMainReset">Reset</string>
+    <string name="btnMainToggleStart">Start</string>
+    <string name="btnMainToggleStop">Stop</string>
+</resources>
