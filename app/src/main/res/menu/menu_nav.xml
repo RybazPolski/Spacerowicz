@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+>
+    <group android:checkableBehavior="single"
+        android:id="@+id/nav_group_walks">
+        <item android:title="@string/nav_walks"
+            android:id="@+id/nav_walks"
+            android:checked="true">
+            <menu>
+
+            </menu>
+        </item>
+    </group>
+    <group android:id="@+id/nav_group_others" android:checkableBehavior="single">
+        <item android:id="@+id/nav_saved_walks"
+            android:icon="@android:drawable/ic_menu_gallery"
+            android:title="@string/nav_saved_walks"
+            />
+        <item
+            android:id="@+id/nav_footer_spacer"
+            android:checkable="false"
+            android:enabled="false"
+            android:orderInCategory="999"
+            android:title=""
+            />
+<!-- ADDITIONAL ITEM IS A SPACER USED TO GIVE YOU MORE SCROLLING DISTANCE (USEFUL WITH OVERLAPPING FOOTER MADE WITH RELATIVE LAYOUT) -->
+    </group>
+</menu>
