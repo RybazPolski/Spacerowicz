@@ -23,7 +23,6 @@ import java.util.Timer;
 public class ChronoodometerService extends Service {
 
     public ChronoodometerService(){
-        super();
     }
     private LocationManager locationManager;
     public static final String PERMISSION_STRING = Manifest.permission.ACCESS_FINE_LOCATION;
@@ -75,7 +74,7 @@ public class ChronoodometerService extends Service {
             }
         };
 
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ContextCompat.checkSelfPermission(this, PERMISSION_STRING) == PackageManager.PERMISSION_GRANTED) {
             String provider = locationManager.getBestProvider(new Criteria(), true);
             if(provider!=null){
@@ -118,5 +117,12 @@ public class ChronoodometerService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if(locationManager!=null && listener!=null){
+            if(ContextCompat.checkSelfPermission(this, PERMISSION_STRING)==PackageManager.PERMISSION_GRANTED){
+                locationManager.removeUpdates(listener);
+            }
+            locationManager = null;
+            listener = null;
+        }
     }
 }

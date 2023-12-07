@@ -41,12 +41,12 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder binder) {
-                if(chronoodometerBinder==null){
-                    chronoodometerBinder = (ChronoodometerService.ChronoodometerBinder) binder;
-                }
-                chronoodometer = chronoodometerBinder.getChronoodometer();
-                bound = true;
-                toggleButton.setText(getString(chronoodometer.isRunning() ? R.string.btn_stopwatch_toggle_stop : R.string.btn_stopwatch_toggle_start));
+            if(chronoodometerBinder==null){
+                chronoodometerBinder = (ChronoodometerService.ChronoodometerBinder) binder;
+            }
+            chronoodometer = chronoodometerBinder.getChronoodometer();
+            bound = true;
+            toggleButton.setText(getString(chronoodometer.isRunning() ? R.string.btn_stopwatch_toggle_stop : R.string.btn_stopwatch_toggle_start));
         }
 
         @Override
@@ -58,14 +58,12 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     @Override
     public void onStart() {
         super.onStart();
-        Intent stopwatchIntent = new Intent(getActivity(), StopwatchService.class);
-        getActivity().bindService(stopwatchIntent, connection, Context.BIND_AUTO_CREATE);
-        // ODOMETER WILL START OR NOT, DEPENDING ON GRANTED PERMISSIONS
-        if(ContextCompat.checkSelfPermission(getActivity(),OdometerService.PERMISSION_STRING)!= PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(getActivity(), new String[]{OdometerService.PERMISSION_STRING},PERMISSION_REQUEST_CODE);
+        // CHRONOODOMETER WILL START OR NOT, DEPENDING ON GRANTED PERMISSIONS
+        if(ContextCompat.checkSelfPermission(getActivity(),ChronoodometerService.PERMISSION_STRING)!= PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(getActivity(), new String[]{ChronoodometerService.PERMISSION_STRING},PERMISSION_REQUEST_CODE);
         }else{
-            Intent odometerIntent = new Intent(getActivity(), OdometerService.class);
-            getActivity().bindService(odometerIntent, connection, Context.BIND_AUTO_CREATE);
+            Intent intent = new Intent(getActivity(), ChronoodometerService.class);
+            getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
         }
     }
 
@@ -84,7 +82,7 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View layout = inflater.inflate(R.layout.fragment_walk_meter, container, false);
         runTimer(layout);
-        displayDistance();
+        displayDistance(layout);
         toggleButton = (Button) layout.findViewById(R.id.btn_stopwatch_toggle);
         toggleButton.setOnClickListener(this);
         Button resetButton = (Button) layout.findViewById(R.id.btn_stopwatch_reset);
@@ -165,8 +163,8 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     }
 
     // UPDATES DISTANCE COUNTER
-    private void displayDistance(){
-        final TextView distanceView = (TextView) getActivity().findViewById(R.id.tv_meter_odometer);
+    private void displayDistance(View view){
+        final TextView distanceView = (TextView) view.findViewById(R.id.tv_meter_odometer);
         final Handler handler = new Handler();
         handler.post(new Runnable() {
             @Override
@@ -192,8 +190,8 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
             case PERMISSION_REQUEST_CODE: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Intent odometerIntent = new Intent(getActivity(), OdometerService.class);
-                    getActivity().bindService(odometerIntent, connection, Context.BIND_AUTO_CREATE);
+                    Intent intent = new Intent(getActivity(), ChronoodometerService.class);
+                    getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
                 } else {
                     NotificationCompat.Builder builder =
                             new NotificationCompat.Builder(getActivity())

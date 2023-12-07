@@ -7,6 +7,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.navigation.NavigationView;
 import androidx.appcompat.widget.Toolbar;
@@ -25,32 +26,45 @@ import com.google.android.material.tabs.TabLayout;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    private ViewPager pager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         SectionPagerAdapter pagerAdapter = new SectionPagerAdapter(getSupportFragmentManager());
-        ViewPager pager = (ViewPager) findViewById(R.id.pager);
-        pager.setAdapter(pagerAdapter);
-
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(pager);
+        pager = (ViewPager) findViewById(R.id.pager);
+        if(pager!=null){
+            pager.setAdapter(pagerAdapter);
+            TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+            tabLayout.setupWithViewPager(pager);
+        }else{
+            WalkDetailFragment walkDetailFragment = new WalkDetailFragment();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            walkDetailFragment.setWalk(0);
+            ft.replace(R.id.walk_detail_container, walkDetailFragment);
+            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+            ft.addToBackStack(null);
+            ft.commit();
+        }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.nav_open_drawer, R.string.nav_close_drawer);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
+        if(toolbar!=null && drawer!=null){
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.nav_open_drawer, R.string.nav_close_drawer);
+            drawer.addDrawerListener(toggle);
+            toggle.syncState();
 
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            navigationView.setNavigationItemSelectedListener(this);
 
-        Menu menuDrawer = navigationView.getMenu();
-        MenuItem itemNavWalks = menuDrawer.findItem(R.id.nav_walks);
-        Menu menuNavWalks = itemNavWalks.getSubMenu();
-        populateMenu(menuNavWalks);
+            Menu menuDrawer = navigationView.getMenu();
+            MenuItem itemNavWalks = menuDrawer.findItem(R.id.nav_walks);
+            Menu menuNavWalks = itemNavWalks.getSubMenu();
+            populateMenu(menuNavWalks);
+        }
     }
 
     @Override
@@ -85,14 +99,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         if(groupId == R.id.nav_group_walks){
-            ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
-            WalkDetailFragment walkDetailFragment = (WalkDetailFragment) getSupportFragmentManager().getFragments().get(0);
-            WalkMeterFragment walkMeterFragment = (WalkMeterFragment) getSupportFragmentManager().getFragments().get(1);
-            if(item.getOrder()!=walkDetailFragment.getWalkId()){
+            if(pager!=null){
+                ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+                WalkDetailFragment walkDetailFragment = (WalkDetailFragment) getSupportFragmentManager().getFragments().get(0);
+                WalkMeterFragment walkMeterFragment = (WalkMeterFragment) getSupportFragmentManager().getFragments().get(1);
+                if(item.getOrder()!=walkDetailFragment.getWalkId()){
+                    walkMeterFragment.onClickReset();
+                    walkDetailFragment.setWalkId(item.getOrder());
+                    viewPager.setCurrentItem(0);
+                    walkDetailFragment.updateView();
+                }
+            }else{
+                WalkDetailFragment walkDetailFragment = new WalkDetailFragment();
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                walkDetailFragment.setWalk(item.getOrder());
+                ft.replace(R.id.walk_detail_container, walkDetailFragment);
+                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                ft.addToBackStack(null);
+                ft.commit();
+
+                WalkMeterFragment walkMeterFragment = (WalkMeterFragment) getSupportFragmentManager().findFragmentById(R.id.walk_meter);
                 walkMeterFragment.onClickReset();
-                walkDetailFragment.setWalkId(item.getOrder());
-                viewPager.setCurrentItem(0);
-                walkDetailFragment.updateView();
             }
 
         } else if (groupId == R.id.nav_group_others) {
