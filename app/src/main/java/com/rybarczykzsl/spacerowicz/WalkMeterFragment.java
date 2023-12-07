@@ -30,12 +30,9 @@ import java.util.Locale;
 public class WalkMeterFragment extends Fragment implements View.OnClickListener {
 
 
-    private StopwatchService stopwatch;
-    private StopwatchService.StopwatchBinder stopwatchBinder;
-    private boolean stopwatchBound;
-    private OdometerService odometer;
-    private OdometerService.OdometerBinder odometerBinder;
-    private boolean odometerBound;
+    private ChronoodometerService chronoodometer;
+    private ChronoodometerService.ChronoodometerBinder chronoodometerBinder;
+    private boolean bound;
     private final int PERMISSION_REQUEST_CODE = 698; // VALUE FROM E-BOOK
     private final int NOTIFICATION_ID = 423; // VALUE FROM E-BOOK
     private int seconds = 0;
@@ -44,23 +41,17 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder binder) {
-                if(stopwatchBinder==null){
-                    stopwatchBinder = (StopwatchService.StopwatchBinder) binder;
+                if(chronoodometerBinder==null){
+                    chronoodometerBinder = (ChronoodometerService.ChronoodometerBinder) binder;
                 }
-//                if (odometerBinder == null) {
-//                    odometerBinder = (OdometerService.OdometerBinder) binder;
-//                }
-                stopwatch = stopwatchBinder.getStopwatch();
-                stopwatchBound = true;
-                toggleButton.setText(getString(stopwatch.isRunning() ? R.string.btn_stopwatch_toggle_stop : R.string.btn_stopwatch_toggle_start));
-//                odometer = odometerBinder.getOdometer();
-//                odometerBound = true;
+                chronoodometer = chronoodometerBinder.getChronoodometer();
+                bound = true;
+                toggleButton.setText(getString(chronoodometer.isRunning() ? R.string.btn_stopwatch_toggle_stop : R.string.btn_stopwatch_toggle_start));
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            stopwatchBound = false;
-            odometerBound = false;
+            bound = false;
         }
     };
 
@@ -84,7 +75,7 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
         if(savedInstanceState != null) {
             seconds = savedInstanceState.getInt("seconds");
             // TRIES TO GET OLD BINDERS IN ORDER TO RESTORE OLD SERVICES IF THEY EXIST
-            stopwatchBinder = (StopwatchService.StopwatchBinder) savedInstanceState.getBinder("stopwatchBinder");
+            chronoodometerBinder = (ChronoodometerService.ChronoodometerBinder) savedInstanceState.getBinder("chronoodometerhBinder");
         }
 
     }
@@ -104,7 +95,7 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState){
         savedInstanceState.putInt("seconds", seconds);
-        savedInstanceState.putBinder("stopwatchBinder",stopwatchBinder);
+        savedInstanceState.putBinder("chronoodometerBinder",chronoodometerBinder);
     }
 
     // DETECTS CLICKS
@@ -119,18 +110,18 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
 
     // HANDLES TOGGLING STOPWATCH AND ODOMETER ON/OFF
     private void onClickToggle() {
-        if(stopwatchBound && stopwatch!=null) {
+        if(bound && chronoodometer!=null) {
             Log.i("BUTTON","Toggle");
-            stopwatch.toggle();
-            toggleButton.setText(getString(stopwatch.isRunning() ? R.string.btn_stopwatch_toggle_stop : R.string.btn_stopwatch_toggle_start));
+            chronoodometer.toggle();
+            toggleButton.setText(getString(chronoodometer.isRunning() ? R.string.btn_stopwatch_toggle_stop : R.string.btn_stopwatch_toggle_start));
         };
-        Log.i("BUTTON","Stopwatch bound: "+stopwatchBound);
+        Log.i("BUTTON","Stopwatch bound: "+bound);
     }
 
     // HANDLES RESETTING STOPWATCH AND ODOMETER SCORES, MADE PUBLIC TO BE ABLE TO BE CALLED WHEN CHANGING WALK FROM NAVIGATION DRAWER
     public void onClickReset(){
-        if(stopwatchBound && stopwatch!=null) {
-            stopwatch.reset();
+        if(bound && chronoodometer!=null) {
+            chronoodometer.reset();
             toggleButton.setText(getString(R.string.btn_stopwatch_toggle_start));
         }
     }
@@ -138,21 +129,17 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     @Override
     public void onStop(){
         super.onStop();
-        if(stopwatchBound){
+        if(bound){
             getActivity().unbindService(connection);
-            stopwatchBound=false;
-        }
-        if(odometerBound){
-            getActivity().unbindService(connection);
-            odometerBound=false;
+            bound=false;
         }
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        if(stopwatchBound && stopwatch!=null){
-            toggleButton.setText(getString(stopwatch.isRunning() ? R.string.btn_stopwatch_toggle_stop : R.string.btn_stopwatch_toggle_start));
+        if(bound && chronoodometer!=null){
+            toggleButton.setText(getString(chronoodometer.isRunning() ? R.string.btn_stopwatch_toggle_stop : R.string.btn_stopwatch_toggle_start));
         }
     }
 
@@ -164,8 +151,8 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
         handler.post(new Runnable() {
             @Override
             public void run() {
-                if(stopwatchBound && stopwatch!=null){
-                    seconds = stopwatch.getTime();
+                if(bound && chronoodometer!=null){
+                    seconds = chronoodometer.getTime();
                 }
                 int hours = seconds / 3600;
                 int minutes = (seconds%3600)/60;
@@ -185,8 +172,8 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
             @Override
             public void run() {
                 double distance = 0.0;
-                if(odometerBound && odometer!=null){
-                    distance = odometer.getDistance();
+                if(bound && chronoodometer!=null){
+                    distance = chronoodometer.getDistance();
                 }
                 String distanceStr = String.format(Locale.getDefault(),"%1$,.2fkm", distance);
                 if(distanceView!=null){
