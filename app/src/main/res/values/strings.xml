@@ -1,6 +1,17 @@
 <resources>
     <string name="app_name">Spacerowicz</string>
-    <string name="btnMainReset">Reset</string>
-    <string name="btnMainToggleStart">Start</string>
-    <string name="btnMainToggleStop">Stop</string>
+    <string name="menu_header_hint">Kliknij, aby otworzyć naszą stronę internetową.</string>
+    <string name="btn_stopwatch_reset">Reset</string>
+    <string name="btn_stopwatch_toggle_start">Start</string>
+    <string name="btn_stopwatch_toggle_stop">Stop</string>
+    <string name="nav_saved_walks">Moje spacery</string>
+    <string name="nav_walks">SPACERY</string>
+    <string name="nav_open_drawer">Otwórz szufladę nawigacyjną</string>
+    <string name="nav_close_drawer">Zamknij szufladę nawigacyjną</string>
+    <string name="nav_contact">kontakt@spacerowicz.pl</string>
+    <string name="notification_name">Drogomierz</string>
+    <string name="notification_description">Wymagany dostęp do lokalizacji.</string>
+    <string name="permission_denied">Wymagany dostęp do lokalizacji.</string>
+    <string name="channel_name">Błąd uprawnień</string>
+    <string name="channel_description">Powiadomienie dotyczące nieprzyznanych uprawnień.</string>
 </resources>

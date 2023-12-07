@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 public class WalkDetailFragment extends Fragment {
 
+    public static final String EXTRA_WALK_ID = "id";
     private long walkId = 0;
     public void setWalk(long id){ this.walkId = id; }
     @Override
@@ -38,13 +39,24 @@ public class WalkDetailFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        updateView();
+    }
+
+    public void updateView(){
         View view = getView();
         if(view != null) {
-            TextView title = (TextView) view.findViewById(R.id.tvMainTitle);
-            TextView desc = (TextView) view.findViewById(R.id.tvMainDesc);
+            TextView title = (TextView) view.findViewById(R.id.tv_main_title);
+            TextView desc = (TextView) view.findViewById(R.id.tv_main_desc);
             Walk walk = Walk.walks[(int) walkId];
             title.setText(walk.getName());
             desc.setText(walk.getDesc());
         }
+    }
+    public void setWalkId(long id){
+        this.walkId = id;
+    }
+
+    public long getWalkId() {
+        return walkId;
     }
 }

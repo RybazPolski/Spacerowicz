@@ -12,27 +12,34 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:id="@+id/tvMainOdometer" />
+        android:id="@+id/tv_meter_odometer"
+        android:text="0.00km"
+        android:textSize="32pt"
+        android:textAlignment="center"
+        />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:id="@+id/tvMainTimer" />
-    
+        android:id="@+id/tv_stopwatch_time"
+        android:text="00:00:00"
+        android:textSize="28pt"
+        android:textAlignment="center"
+        android:layout_marginBottom="16dp"/>
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/btnMainToggle"
+        android:id="@+id/btn_stopwatch_toggle"
         android:layout_gravity="center_horizontal"
-        android:text="@string/btnMainToggleStart"/>
+        android:text="@string/btn_stopwatch_toggle_start"/>
 
     <Button
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:id="@+id/btnMainReset"
+        android:id="@+id/btn_stopwatch_reset"
         android:layout_gravity="center_horizontal"
-        android:text="@string/btnMainReset"/>
+        android:text="@string/btn_stopwatch_reset"/>
 
-    
 </LinearLayout>
