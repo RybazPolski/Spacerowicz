@@ -1,7 +1,9 @@
 package com.rybarczykzsl.spacerowicz;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -12,8 +14,14 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.navigation.NavigationView;
 import androidx.appcompat.widget.Toolbar;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.telecom.Call;
 import android.util.Log;
@@ -28,9 +36,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private ViewPager pager;
 
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is not in the Support Library.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(WalkMeterFragment.NOTIFICATION_CHANNEL_PERMISSIONS, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system. You can't change the importance
+            // or other notification behaviors after this.
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        createNotificationChannel();
+
         setContentView(R.layout.activity_main);
 
         SectionPagerAdapter pagerAdapter = new SectionPagerAdapter(getSupportFragmentManager());
@@ -119,7 +146,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 ft.commit();
 
                 WalkMeterFragment walkMeterFragment = (WalkMeterFragment) getSupportFragmentManager().findFragmentById(R.id.walk_meter);
-                walkMeterFragment.onClickReset();
+                if(walkMeterFragment != null){
+                    walkMeterFragment.onClickReset();
+                }
             }
 
         } else if (groupId == R.id.nav_group_others) {
@@ -143,12 +172,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private class SectionPagerAdapter extends FragmentPagerAdapter {
+    private static class SectionPagerAdapter extends FragmentPagerAdapter {
         public SectionPagerAdapter(FragmentManager fm){super(fm);};
 
         @Override
         public int getCount(){return 2;}
         @Override
+        @NonNull
         public Fragment getItem(int position){
             switch (position){
                 case 0:
@@ -179,12 +209,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         startActivity(launchBrowser);
     }
 
-//  POPULATES TARGETTED MENU WITH ITEMS FROM WALKS STATIC ARRAY OF WALK CLASS
+//  POPULATES TARGETED MENU WITH ITEMS FROM WALKS STATIC ARRAY OF WALK CLASS
     private void populateMenu(Menu menu){
         for(int i=0; i<Walk.walks.length; i++){
             MenuItem item = menu.add(R.id.nav_group_walks, i, i, "• "+Walk.walks[i].getName());
             if(i==0){item.setChecked(true);}
         }
+    }
+
+    @Override
+    // HANDLING NOTIFICATIONS WHEN PERMISSIONS ACCEPTED/REJECTED - CODE FROM E-BOOK
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        WalkMeterFragment walkMeterFragment = (WalkMeterFragment) getSupportFragmentManager().getFragments().get(1);
+        if (requestCode==walkMeterFragment.PERMISSION_REQUEST_CODE) {
+                    if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        Intent intent = new Intent(this, ChronoodometerService.class);
+                        this.bindService(intent, walkMeterFragment.connection, Context.BIND_AUTO_CREATE);
+                    }
+                }
     }
 
 }

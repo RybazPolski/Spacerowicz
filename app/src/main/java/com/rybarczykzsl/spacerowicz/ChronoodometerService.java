@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.os.IBinder;
 
 import android.app.Service;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -76,10 +77,9 @@ public class ChronoodometerService extends Service {
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ContextCompat.checkSelfPermission(this, PERMISSION_STRING) == PackageManager.PERMISSION_GRANTED) {
-            String provider = locationManager.getBestProvider(new Criteria(), true);
-            if(provider!=null){
-                locationManager.requestLocationUpdates(provider, 1000, 1, listener);
-            }
+//            String provider = locationManager.getBestProvider(new Criteria(), true);
+//              ^^^screw that, GPS works the best.
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, listener);
         }
 
         handler = new Handler();
@@ -107,6 +107,7 @@ public class ChronoodometerService extends Service {
     public void reset(){
         running=false;
         seconds=0;
+        distanceInMeters=0;
         lastLocation = null;
     }
 
