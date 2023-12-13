@@ -9,8 +9,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
@@ -25,6 +29,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.Locale;
+import java.util.Objects;
 
 
 public class WalkMeterFragment extends Fragment implements View.OnClickListener {
@@ -33,12 +38,14 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     private ChronoodometerService chronoodometer;
     private ChronoodometerService.ChronoodometerBinder chronoodometerBinder;
     private boolean bound;
-    private final int PERMISSION_REQUEST_CODE = 698; // VALUE FROM E-BOOK
+    public final int PERMISSION_REQUEST_CODE = 698; // VALUE FROM E-BOOK
     private final int NOTIFICATION_ID = 423; // VALUE FROM E-BOOK
+    public final static String NOTIFICATION_CHANNEL_PERMISSIONS = "Permission notifications"; // VALUE FROM WHO KNOWS WHERE
     private int seconds = 0;
+    private double distance = 0.0;
     private Button toggleButton;
 
-    private ServiceConnection connection = new ServiceConnection() {
+    public final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder binder) {
             if(chronoodometerBinder==null){
@@ -59,11 +66,11 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     public void onStart() {
         super.onStart();
         // CHRONOODOMETER WILL START OR NOT, DEPENDING ON GRANTED PERMISSIONS
-        if(ContextCompat.checkSelfPermission(getActivity(),ChronoodometerService.PERMISSION_STRING)!= PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(getActivity(), new String[]{ChronoodometerService.PERMISSION_STRING},PERMISSION_REQUEST_CODE);
+        if(ContextCompat.checkSelfPermission(requireActivity(),ChronoodometerService.PERMISSION_STRING)!= PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(requireActivity(), new String[]{ChronoodometerService.PERMISSION_STRING},PERMISSION_REQUEST_CODE);
         }else{
-            Intent intent = new Intent(getActivity(), ChronoodometerService.class);
-            getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
+            Intent intent = new Intent(requireActivity(), ChronoodometerService.class);
+            requireActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
         }
     }
 
@@ -73,16 +80,14 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
         if(savedInstanceState != null) {
             seconds = savedInstanceState.getInt("seconds");
             // TRIES TO GET OLD BINDERS IN ORDER TO RESTORE OLD SERVICES IF THEY EXIST
-            chronoodometerBinder = (ChronoodometerService.ChronoodometerBinder) savedInstanceState.getBinder("chronoodometerhBinder");
+            chronoodometerBinder = (ChronoodometerService.ChronoodometerBinder) savedInstanceState.getBinder("chronoodometerBinder");
         }
-
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View layout = inflater.inflate(R.layout.fragment_walk_meter, container, false);
-        runTimer(layout);
-        displayDistance(layout);
+        startMeasuring(layout);
         toggleButton = (Button) layout.findViewById(R.id.btn_stopwatch_toggle);
         toggleButton.setOnClickListener(this);
         Button resetButton = (Button) layout.findViewById(R.id.btn_stopwatch_reset);
@@ -109,11 +114,25 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     // HANDLES TOGGLING STOPWATCH AND ODOMETER ON/OFF
     private void onClickToggle() {
         if(bound && chronoodometer!=null) {
-            Log.i("BUTTON","Toggle");
             chronoodometer.toggle();
             toggleButton.setText(getString(chronoodometer.isRunning() ? R.string.btn_stopwatch_toggle_stop : R.string.btn_stopwatch_toggle_start));
-        };
-        Log.i("BUTTON","Stopwatch bound: "+bound);
+        }else{
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(requireActivity(), NOTIFICATION_CHANNEL_PERMISSIONS)
+                            .setSmallIcon(android.R.drawable.ic_menu_compass)
+                            .setContentTitle(getResources().getString(R.string.app_name))
+                            .setContentText(getResources().getString(R.string.permission_denied))
+                            .setPriority(NotificationCompat.PRIORITY_HIGH)
+                            .setVibrate(new long[]{1000, 1000})
+                            .setAutoCancel(true)
+                            .setChannelId(NOTIFICATION_CHANNEL_PERMISSIONS);
+            Intent actionIntent = new Intent(requireActivity(), MainActivity.class);
+            PendingIntent actionPendingIntent = PendingIntent.getActivity(requireActivity(), 0,
+                    actionIntent, Build.VERSION.SDK_INT>31?PendingIntent.FLAG_IMMUTABLE:PendingIntent.FLAG_UPDATE_CURRENT);
+            builder.setContentIntent(actionPendingIntent);
+            NotificationManager notificationManager =
+                    (NotificationManager) requireActivity().getSystemService(NOTIFICATION_SERVICE);
+            notificationManager.notify(NOTIFICATION_ID, builder.build());
+        }
     }
 
     // HANDLES RESETTING STOPWATCH AND ODOMETER SCORES, MADE PUBLIC TO BE ABLE TO BE CALLED WHEN CHANGING WALK FROM NAVIGATION DRAWER
@@ -128,7 +147,7 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     public void onStop(){
         super.onStop();
         if(bound){
-            getActivity().unbindService(connection);
+            requireActivity().unbindService(connection);
             bound=false;
         }
     }
@@ -142,75 +161,28 @@ public class WalkMeterFragment extends Fragment implements View.OnClickListener 
     }
 
     // UPDATES TIMER
-    private void runTimer(View view){
+    private void startMeasuring(View view){
         final TextView timeView = (TextView) view.findViewById(R.id.tv_stopwatch_time);
-
+        final TextView distanceView = (TextView) view.findViewById(R.id.tv_meter_odometer);
         final Handler handler = new Handler();
         handler.post(new Runnable() {
             @Override
             public void run() {
                 if(bound && chronoodometer!=null){
                     seconds = chronoodometer.getTime();
+                    distance = chronoodometer.getDistance();
                 }
                 int hours = seconds / 3600;
                 int minutes = (seconds%3600)/60;
                 int secs = seconds % 60;
-                String time = String.format("%02d:%02d:%02d", hours, minutes, secs);
-                timeView.setText(time);
-                handler.postDelayed(this,1000);
-            }
-        });
-    }
+                String timeStr = String.format("%02d:%02d:%02d", hours, minutes, secs);
+                timeView.setText(timeStr);
 
-    // UPDATES DISTANCE COUNTER
-    private void displayDistance(View view){
-        final TextView distanceView = (TextView) view.findViewById(R.id.tv_meter_odometer);
-        final Handler handler = new Handler();
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                double distance = 0.0;
-                if(bound && chronoodometer!=null){
-                    distance = chronoodometer.getDistance();
-                }
                 String distanceStr = String.format(Locale.getDefault(),"%1$,.2fkm", distance);
-                if(distanceView!=null){
-                    distanceView.setText(distanceStr);
-                }
+                distanceView.setText(distanceStr);
+
                 handler.postDelayed(this,1000);
             }
         });
-    }
-
-    @Override
-    // HANDLING NOTIFICATIONS WHEN PERMISSIONS ACCEPTED/REJECTED - CODE FROM E-BOOK
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_CODE: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Intent intent = new Intent(getActivity(), ChronoodometerService.class);
-                    getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
-                } else {
-                    NotificationCompat.Builder builder =
-                            new NotificationCompat.Builder(getActivity())
-                                    .setSmallIcon(android.R.drawable.ic_menu_compass)
-                                    .setContentTitle(getResources().getString(R.string.app_name))
-                                    .setContentText(getResources().getString(
-                                            R.string.permission_denied))
-                                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                                    .setVibrate(new long[] { 1000, 1000})
-                                    .setAutoCancel(true);
-                    Intent actionIntent = new Intent(getActivity(), MainActivity.class);
-                    PendingIntent actionPendingIntent = PendingIntent.getActivity(getActivity(), 0,
-                            actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    builder.setContentIntent(actionPendingIntent);
-                    NotificationManager notificationManager =
-                            (NotificationManager) getActivity().getSystemService(NOTIFICATION_SERVICE);
-                    notificationManager.notify(NOTIFICATION_ID, builder.build());
-                }
-            }
-        }
     }
 }
