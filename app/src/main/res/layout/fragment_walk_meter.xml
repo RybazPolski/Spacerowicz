@@ -1,45 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    >
-    
-    <TextView
+    android:fillViewport="true">
+    <LinearLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:id="@+id/tv_meter_odometer"
-        android:text="0.00km"
-        android:textSize="32pt"
-        android:textAlignment="center"
-        />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:id="@+id/tv_stopwatch_time"
-        android:text="00:00:00"
-        android:textSize="28pt"
-        android:textAlignment="center"
-        android:layout_marginBottom="16dp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/tv_meter_odometer"
+            android:text="0.00km"
+            android:textSize="32pt"
+            android:textAlignment="center"
+            />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/btn_stopwatch_toggle"
-        android:layout_gravity="center_horizontal"
-        android:text="@string/btn_stopwatch_toggle_start"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/tv_stopwatch_time"
+            android:text="00:00:00"
+            android:textSize="28pt"
+            android:textAlignment="center"
+            android:layout_marginBottom="16dp"/>
 
-    <Button
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:id="@+id/btn_stopwatch_reset"
-        android:layout_gravity="center_horizontal"
-        android:text="@string/btn_stopwatch_reset"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_stopwatch_toggle"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/btn_stopwatch_toggle_start"/>
 
-</LinearLayout>
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:id="@+id/btn_stopwatch_reset"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/btn_stopwatch_reset"/>
+
+    </LinearLayout>
+</ScrollView>
