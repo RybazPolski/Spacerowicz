@@ -4,7 +4,9 @@
     <string name="btn_stopwatch_reset">Reset</string>
     <string name="btn_stopwatch_toggle_start">Start</string>
     <string name="btn_stopwatch_toggle_stop">Stop</string>
-    <string name="nav_saved_walks">Moje spacery</string>
+    <!--  TODO: Bring it back to (it would be the best if working) Moje spacery functionality -->
+<!--    <string name="nav_saved_walks">Moje spacery</string>-->
+    <string name="nav_saved_walks">Udostępnianie</string>
     <string name="nav_walks">SPACERY</string>
     <string name="nav_open_drawer">Otwórz szufladę nawigacyjną</string>
     <string name="nav_close_drawer">Zamknij szufladę nawigacyjną</string>
@@ -14,4 +16,9 @@
     <string name="permission_denied">Wymagany dostęp do lokalizacji.</string>
     <string name="channel_name">Błąd uprawnień</string>
     <string name="channel_description">Powiadomienie dotyczące nieprzyznanych uprawnień.</string>
+    <string name="i_will_do_what_i_must_header">Poleć spacer znajomemu</string>
+    <string name="i_will_do_what_i_must_text_edit">Imię znajomego</string>
+    <string name="i_will_do_what_i_must_checkbox">Wyślij bez imienia</string>
+    <string name="i_will_do_what_i_must_list_view_header">Wybierz spacer:</string>
+    <string name="send_walk_title">Wyślij</string>
 </resources>

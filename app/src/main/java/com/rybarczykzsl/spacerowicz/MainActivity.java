@@ -153,7 +153,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         } else if (groupId == R.id.nav_group_others) {
             if(itemId == R.id.nav_saved_walks){
-                // TODO: REDIRECT TO SAVED WALKS ACTIVITY
+                Intent IWillDoWhatIMustIntent = new Intent(this, IWillDoWhatIMustActivity.class);
+                startActivity(IWillDoWhatIMustIntent);
             }
         }
 
